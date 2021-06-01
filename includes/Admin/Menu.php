@@ -5,7 +5,6 @@ class Menu{
     
    function __construct()
     {
-        echo "I am working also"; 
         add_action( 'admin_menu', [$this, 'wpdocs_register_my_custom_menu_page'] );
     }
 
