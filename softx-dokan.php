@@ -10,6 +10,7 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 5.7
  * Requires PHP: 7.3
+ * Text Domain: softx-dokan
  */
 
 defined('ABSPATH') || exit ;
@@ -81,9 +82,11 @@ final class Dokan_Lite_Extension{
 
     public function init_plugin()
     {
-       
+       new Softx\Assets(); 
+
+        if(is_admin()){
           new Softx\Admin(); 
-      
+        }
 
     
     }

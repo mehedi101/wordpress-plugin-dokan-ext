@@ -1,13 +1,13 @@
 <?php
 namespace Softx;
 
-class Asset{ 
+class Assets{ 
 
 
     public function __construct() {
         add_action('wp_enqueue_scripts', [$this, 'register_assets']);
         add_action('admin_enqueue_scripts', [$this, 'register_assets']);
-        $this->custom_admin_enqueue_assets(); 
+       
     }
 
 
@@ -16,10 +16,10 @@ class Asset{
         return [
             'dokan-admin-script' => [
                 'src' => DEXT_ASSETS. '/js/softx-dokan-admin.js', 
-                'version' filemtime(DEXT_ASSETS. '/js/softx-dokan-admin.js');
-                'deps' => ['jQuery'],
+                'version' =>  filemtime(DEXT_DIR. '/assets/js/softx-dokan-admin.js'),
+                'deps' => ['jQuery']
             ]
-        ]
+            ];
         
     }
 
@@ -28,11 +28,11 @@ class Asset{
     {
         return [
             'dokan-admin-css' => [
-                'src' => DEXT_ASSETS. '/js/softx-dokan-admin.js', 
-                'version' filemtime(DEXT_ASSETS. '/js/softx-dokan-admin.js');
-                'deps' => ['jQuery'],
+                'src' => DEXT_ASSETS. '/css/softx-dokan-admin.css', 
+                'version' => filemtime(DEXT_DIR. '/assets/css/softx-dokan-admin.css'),
+                'deps' => ['jQuery']
             ]
-        ]
+            ];
     }
 
 
@@ -53,15 +53,7 @@ class Asset{
             wp_register_style($handle , $value['src'], $deps , $value['version']);
         }
 
-
-
-
     }
 
-    public function custom_admin_enqueue_assets()
-    {
-        $screen = get_current_screen(); 
-        print_r($screen);
-        wp_enqueue_script('dokan-admin-script');
-    }
+    
 }

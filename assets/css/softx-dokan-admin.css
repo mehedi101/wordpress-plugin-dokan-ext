@@ -1,0 +1,14 @@
+/**admin css file product list*/
+
+@media only screen and (min-width:768px){ 
+
+    #wpbody table.wp-list-table .column-sku, 
+    #wpbody table.wp-list-table .column-name, 
+    #wpbody table.wp-list-table .column-product_cat, 
+    #wpbody table.wp-list-table .column-product_tag,
+    #wpbody .fixed .column-date,
+    #wpbody .fixed .column-author {
+        width: 6% !important;
+    }
+
+}

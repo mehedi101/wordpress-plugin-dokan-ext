@@ -1,3 +1,1 @@
 ;// admin js
-
-alert('working');
