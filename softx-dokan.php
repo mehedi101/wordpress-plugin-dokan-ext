@@ -37,6 +37,8 @@ final class Dokan_Lite_Extension{
         register_activation_hook( __FILE__, [$this, 'activate'] );
         register_deactivation_hook( __FILE__, [$this, 'deactivate'] );
         add_action( 'plugins_loaded', [ $this, 'init_plugin' ] );
+        add_action( 'woocommerce_loaded', [ $this, 'extend_woo' ] );
+        add_action( 'dokan_loaded', [ $this, 'extend_dokan' ] );
 
         
     }
@@ -73,6 +75,18 @@ final class Dokan_Lite_Extension{
     public function activate()
     {
         update_option( 'dext_version', DEXT_VERSION ); 
+        (new Softx\Installer())->run();
+       
+    }
+
+    public function extend_woo(){
+        (new Softx\Custom_Taxonomy())->init_taxonomy(); 
+    }
+
+    public function extend_dokan()
+    {
+       ( new Softx\Dokan_Plugin_Override() )->override_dokan(); 
+        // add dokan related custom funcationality
     }
 
     public function deactivate()
@@ -82,7 +96,7 @@ final class Dokan_Lite_Extension{
 
     public function init_plugin()
     {
-       new Softx\Assets(); 
+     new Softx\Assets(); 
 
         if(is_admin()){
           new Softx\Admin(); 
@@ -90,6 +104,7 @@ final class Dokan_Lite_Extension{
 
     
     }
+
 
 }
 

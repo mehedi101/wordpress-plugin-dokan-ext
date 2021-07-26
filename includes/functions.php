@@ -130,14 +130,15 @@ function cstm_css_and_js() {
 
 #Remove product categories from shop page
 
-add_action( 'pre_get_posts', 'custom_pre_get_posts_query' );
+//add_action( 'pre_get_posts', 'softx_custom_pre_get_posts_query' );
+//add_action( 'woocommerce_product_query', 'softx_custom_pre_get_posts_query' );
 
-function custom_pre_get_posts_query( $q ) {
+function softx_custom_pre_get_posts_query( $q ) {
  
 	if ( ! $q->is_main_query() ) return;
 	if ( ! $q->is_post_type_archive() ) return;
 	
-	if ( ! is_admin() && is_shop() && ! is_user_logged_in() ) {
+	if ( ! is_admin() && is_shop() && ( ! is_user_logged_in() || current_user_can( 'customer'))) {
   
    # get all the terms id of prices taxonomy; 
   //$price_terms = get_terms('prices', ['hide_empty' => 1, 'fields' => 'ids']);
@@ -177,7 +178,46 @@ $q->set( 'meta_query', $meta_query );
 }
 
 
+add_filter('woocommerce_product_get_price', 'softx_custom_price_for_public_visitor', 10, 2);
+/**
+ * custom_price_WPA111772 
+ *
+ * filter the price based on category and user role
+ * @param  $price   
+ * @param  $product 
+ * @return 
+ */
+function softx_custom_price_for_public_visitor($price, $product) {
+  $is_public = $product->get_meta('_is_public_product_checkbox');
+  
 
+    if (is_user_logged_in() 
+    && ( current_user_can('administrator') || current_user_can('manage_company') ) ){ 
+      return $price;
+    }elseif(is_user_logged_in() && current_user_can('employee')){
+      return $price=""; 
+    }else{
+
+      if( $is_public == 'yes'){ 
+        $price = $product->get_meta('_public_product_price_field', true ); 
+      } 
+      return $price;
+    }
+    
+    
+}
+add_action( 'flatsome_after_header', 'softx_public_shop_term_header');
+	function softx_public_shop_term_header()
+	{
+	//	if( has_term('public-shop','shops')){  
+		if( is_tax('shops','public-shop')){  
+     
+        echo	do_shortcode( '[block id="public-shop-header"]' );
+
+		}
+
+		
+	}
 
 /**
  * Hide product for current user role

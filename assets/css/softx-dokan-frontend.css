@@ -1,0 +1,19 @@
+/** 
+===============
+added by mehedi
+===============
+*/
+.dokan-show{
+    display:block;
+  }
+  
+  .dokan-visibility-hidden{
+    opacity: 0;
+    visibility: hidden;
+  }
+  .dokan-download-options.dokan-edit-row{
+    display:none;
+  }
+  .dokan-table thead tr th:nth-child(8), .dokan-table tbody tr td:nth-child(8) {
+    display: none;
+}
