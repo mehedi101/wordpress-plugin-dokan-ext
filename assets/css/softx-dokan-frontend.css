@@ -17,3 +17,14 @@ added by mehedi
   .dokan-table thead tr th:nth-child(8), .dokan-table tbody tr td:nth-child(8) {
     display: none;
 }
+.term-public-shop .woof_container_prices, .term-public-shop .term-description {
+  display: none;
+}
+/*
+Hide price or logget out user and customer in shop page;
+*/
+
+body.woocommerce-shop:not(.logged-in) .price-wrapper, 
+body.woocommerce-shop:not(.customer) .price-wrapper {
+  display: none;
+}

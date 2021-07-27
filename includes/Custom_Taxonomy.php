@@ -8,6 +8,8 @@ class Custom_Taxonomy
         add_action( 'init', [$this, 'create_prices_hierarchical_taxonomy']);
         add_action( 'init', [$this, 'create_brands_hierarchical_taxonomy']); 
         add_action( 'init', [$this, 'create_shops_taxonomy']); 
+        add_action( 'shops_edit_form_fields', [$this, 'edit_shops_form_fields'], 10,2);
+        add_action( 'edited_shops', [$this, 'update_top_content_term_meta'], 10,2);
 
     }
     
@@ -45,6 +47,11 @@ class Custom_Taxonomy
             'query_var' => true,
             'rewrite' => array( 'slug' => 'price' ),
           ));
+
+          $prices_terms = ['150DKK','200DKK','300DKK','500DKK','800DKK','1200DKK'];
+          foreach($prices_terms as $term){  
+            $this->softx_create_taxonomy_term($term, 'prices');
+          }
          
     }
         
@@ -79,7 +86,12 @@ class Custom_Taxonomy
                 'query_var' => true,
                 'rewrite' => array( 'slug' => 'brand' ),
             ));
-        
+
+            $brands_terms = ['BayMartin','Guarantor'];
+            foreach($brands_terms as $term){  
+              $this->softx_create_taxonomy_term($term, 'brands');
+            }
+            
     }
 
 
@@ -136,20 +148,66 @@ class Custom_Taxonomy
 
       register_taxonomy( 'shops', array('product'), $args );
 
-      $term = term_exists( 'public-shop', 'shops' );
+      $this->softx_create_taxonomy_term('public-shop', 'shops');
+
+    }
+
+    /**
+     * Show top content meta key on the shop taxonomy.
+     * @since 1.0.0
+     */
+
+    public function edit_shops_form_fields($term, $taxonomy){ 
+
+      $get_top_content_meta = trim(get_term_meta( $term->term_id, 'top_content', true ));
+
+    ?> 
+    <tr class="form-field term-public-shop-wrap">
+			<th scope="row">
+        <label for="top_content"> <?php _e( 'Top content', 'softx-dokan' )?> </label>
+      </th>
+			<td>
+      <textarea name="top_content" id="top_content" rows="3" cols="50" class="large-text">
+        <?php echo $get_top_content_meta; ?>
+      </textarea>  
+			<p class="description"> <?php _e( 'Add block banner shortcode to show on the term header.', 'softx-dokan' );?> </p>
+    </td>
+		</tr>
+    <?php   
+    }
+
+    public function update_top_content_term_meta($term_id, $tt_id){  
+
+      if( ! current_user_can('manage_options') && empty($_POST['top_content'])){  
+        return;
+      }
+      $shortcode = trim($_POST['top_content']);
+      update_term_meta($term_id, 'top_content',  $shortcode);
+      
+    }
+
+    private function softx_create_taxonomy_term($term_name, $taxonomy){  
+
+      if(! current_user_can('manage_options')){ 
+        return false;
+      }
+      $slug = sanitize_title($term_name);
+
+      $term = term_exists( $slug, $taxonomy );
 
       if( ! $term){ 
-        wp_insert_term(
-          __( 'public-shop', 'softx-dokan' ),
-          'shops', 
+       $term= wp_insert_term(
+          __( $term_name, 'softx-dokan' ),
+          $taxonomy, 
           array(
-            'slug' => 'public-shop',
-            'description' => __( 'shop product on only for general people', 'softx-dokan' ),
+            'slug' => $slug,
+            'description' => __( $term_name, 'softx-dokan' ),
           )
         );
       }
 
-
+      return $term;
     }
+
 
 }

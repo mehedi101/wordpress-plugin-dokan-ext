@@ -1,135 +1,4 @@
 <?php
-//hook into the init action and call create_book_taxonomies when it fires
- 
-add_action( 'init', 'create_prices_hierarchical_taxonomy', 0 );
-add_action( 'init', 'create_brands_hierarchical_taxonomy', 0 );
-
-//create a custom taxonomy name it prices for your posts
- 
-function create_prices_hierarchical_taxonomy() {
- 
-// Add new taxonomy, make it hierarchical like categories
-//first do the translations part for GUI
- 
-  $labels = array(
-    'name' => __( 'Prices', 'softx-dokan' ),
-    'singular_name' => __( 'Price', 'softx-dokan' ),
-    'search_items' =>  __( 'Search Prices', 'softx-dokan' ),
-    'all_items' => __( 'All Prices', 'softx-dokan' ),
-    'parent_item' => __( 'Parent Price', 'softx-dokan' ),
-    'parent_item_colon' => __( 'Parent Price:', 'softx-dokan' ),
-    'edit_item' => __( 'Edit Price', 'softx-dokan' ),
-    'update_item' => __( 'Update Price', 'softx-dokan' ),
-    'add_new_item' => __( 'Add New Price', 'softx-dokan' ),
-    'new_item_name' => __( 'New Price Name', 'softx-dokan' ),
-    'menu_name' => __( 'Prices', 'softx-dokan' ),
-  );    
- 
-// Now register the taxonomy
-  register_taxonomy('prices',array('product'), array(
-    'hierarchical' => true,
-    'labels' => $labels,
-    'show_ui' => true,
-    'show_in_rest' => true,
-    'show_admin_column' => true,
-    'query_var' => true,
-    'rewrite' => array( 'slug' => 'price' ),
-  ));
- 
-}
-
-
-function create_brands_hierarchical_taxonomy(){
-	$labels = [
-		'name' => __( 'Brands', 'softx-dokan' ),
-		'singular_name' => __( 'Brand', 'softx-dokan' ),
-		'search_items' =>  __( 'Search Brands', 'softx-dokan' ),
-		'all_items' => __( 'All Brands', 'softx-dokan' ),
-		'parent_item' => __( 'Parent Brand', 'softx-dokan' ),
-		'parent_item_colon' => __( 'Parent Brand:', 'softx-dokan' ),
-		'edit_item' => __( 'Edit Brand', 'softx-dokan' ),
-		'update_item' => __( 'Update Brand', 'softx-dokan' ),
-		'add_new_item' => __( 'Add New Brand', 'softx-dokan' ),
-		'new_item_name' => __( 'New Brand Name', 'softx-dokan' ),
-		'menu_name' => __( 'Brands', 'softx-dokan' )
-
-	];
-
-	// Now register the taxonomy
-	register_taxonomy('brands',array('product'), array(
-		'hierarchical' => true,
-		'labels' => $labels,
-		'show_ui' => true,
-		'show_in_rest' => true,
-		'show_admin_column' => true,
-		'query_var' => true,
-		'rewrite' => array( 'slug' => 'brand' ),
-	));
-
-}
-
-/*
-  // Display custom Fields on product edit page
-add_action('woocommerce_product_options_general_product_data', 'woocommerce_product_custom_fields');
-
-// Save Fields
-add_action('woocommerce_process_product_meta', 'woocommerce_product_custom_fields_save');
-
-
-function woocommerce_product_custom_fields()
-{
-    global $woocommerce, $post;
-    echo '<div class="product_custom_field">';
-
-    woocommerce_wp_checkbox([
-      'id' => '_is_public_product_checkbox',
-      'label' => __('Is public product', 'softx-dokan'),
-      'wrapper_class' => 'show_if_simple',
-    ]);
-
-      //Custom Product Number Field
-      woocommerce_wp_text_input(
-        array(
-            'id' => '_public_product_price_field',
-            'placeholder' => __('price for the general customer','softx-dokan'),
-            'label' => __('Public Price', 'softx-dokan'),
-            'type' => 'number',
-            'wrapper_class' => 'show_if_simple'
-        )
-    );
-    echo '</div>';
-
-}
-
-
-function woocommerce_product_custom_fields_save($post_id)
-{
- $wc_custom_product_cehckbox_fields =$_POST['_is_public_product_checkbox'];
- 
-if(!empty($wc_custom_product_cehckbox_fields)){ 
-  update_post_meta($post_id, '_is_public_product_checkbox', esc_attr($wc_custom_product_cehckbox_fields));
-}
-
-$wc_public_product_price_field = $_POST['_public_product_price_field'];
-
-if(!empty($wc_custom_product_cehckbox_fields)){ 
-  update_post_meta($post_id, '_public_product_price_field', esc_attr($wc_public_product_price_field));
-}
-
-}
-*/
-
-// custom css and js
-//add_action('admin_head', 'cstm_css_and_js');
-add_action('admin_enqueue_scripts', 'cstm_css_and_js');
- 
-function cstm_css_and_js() {
- 
-    wp_enqueue_style('boot_admin_css', plugins_url('../assets/css/softx-dokan-admin.css',__FILE__ ));
-}
-
-#Remove product categories from shop page
-
 //add_action( 'pre_get_posts', 'softx_custom_pre_get_posts_query' );
 //add_action( 'woocommerce_product_query', 'softx_custom_pre_get_posts_query' );
 
@@ -188,14 +57,12 @@ add_filter('woocommerce_product_get_price', 'softx_custom_price_for_public_visit
  * @return 
  */
 function softx_custom_price_for_public_visitor($price, $product) {
+
   $is_public = $product->get_meta('_is_public_product_checkbox');
-  
 
     if (is_user_logged_in() 
-    && ( current_user_can('administrator') || current_user_can('manage_company') ) ){ 
+    && ( current_user_can('administrator') || current_user_can('manage_company') ||  current_user_can('employee') ) ){ 
       return $price;
-    }elseif(is_user_logged_in() && current_user_can('employee')){
-      return $price=""; 
     }else{
 
       if( $is_public == 'yes'){ 
@@ -204,15 +71,27 @@ function softx_custom_price_for_public_visitor($price, $product) {
       return $price;
     }
     
-    
 }
+
+/**
+ * 
+ * @author Mehedi Hasan <hello@mehedihasn.com>
+ * 
+ * add banner to the public-shop Page
+ * @return void
+ * 
+ */
 add_action( 'flatsome_after_header', 'softx_public_shop_term_header');
+
 	function softx_public_shop_term_header()
 	{
+  
+
 	//	if( has_term('public-shop','shops')){  
 		if( is_tax('shops','public-shop')){  
-     
-        echo	do_shortcode( '[block id="public-shop-header"]' );
+        $term = get_term_by('slug','public-shop', 'shops');
+          $shortcode =  get_term_meta( $term->term_id, 'top_content', true );
+        echo !empty($shortcode) ?	do_shortcode( $shortcode ) : null;
 
 		}
 
@@ -220,31 +99,89 @@ add_action( 'flatsome_after_header', 'softx_public_shop_term_header');
 	}
 
 /**
- * Hide product for current user role
+ * 
+ * @author Mehedi Hasan <hello@mehedihasn.com>
+ * 
+ * Shop public price column on admin product list table
+ * 
+ * @param array $columns
+ * @return mixed 
  */
 
-// add_action( 'woocommerce_product_query', 'hide_product_query' );
+add_filter( 'manage_edit-product_columns', 'softx_add_public_price_column', 11);
 
-// function hide_product_query( $q ){
+function softx_add_public_price_column($columns)
+{
+  $columns['_public_product_price_field'] = __( 'public price', 'softx-dokan');
 
-//   if((getCurrentUserRole() == 'editor' ) || (getCurrentUserRole() == 'administrator' )){
-
-// return false;
-// } else  {
-
-
-// $meta_query = $q->get( 'meta_query' );
-
-//     if ( get_option( 'woocommerce_hide_out_of_stock_items' ) == 'no' ) {
-//         $meta_query[] = array(
-//                     'key'       => '_hide_from_users',
-//                     'compare'   => 'NOT EXISTS'
-//                 );
-//     }
-
-//     $q->set( 'meta_query', $meta_query );
-
-// }
+  return $columns;
+}
 
 
-// }
+/**
+ * 
+ * @author Mehedi Hasan <hello@mehedihasn.com>
+ * 
+ * show content to the public price column on
+ * woocommerce admin product list table. 
+ * 
+ * @param array $column
+ * @param int $product_id
+ * @return void
+ * 
+ */
+add_filter( 'manage_product_posts_custom_column', 'softx_show_public_price_content',10,2);
+
+function softx_show_public_price_content($column, $product_id){  
+
+  switch($column) {
+
+    case '_public_product_price_field':
+      $public_price = get_post_meta( $product_id, '_public_product_price_field', true );
+      echo ($public_price > 1) ? wc_price($public_price) : null;
+      break;
+    
+    default:
+      break;
+  }
+}
+
+/**
+ * Disable add to cart for general visitors or customer
+ * for only private shop products
+ * @return void
+ */
+add_action( 'wp_head','softx_disable_product_purchase',10,2);
+
+function softx_disable_product_purchase(){
+
+if (is_product() && !is_user_logged_in() && ! has_term( 'public-shop', 'shops')) {
+  // in product page
+  add_filter('woocommerce_is_purchasable', '__return_false');
+  }
+}
+
+
+/**
+ * add role as a class name for in the html body
+ * @return  array
+ */
+add_filter('body_class','softx_add_custome_css_class_to_body');
+function softx_add_custome_css_class_to_body($classes) {
+
+  if(is_user_logged_in()){ 
+    $user = wp_get_current_user();
+    $roles = ( array ) $user->roles;
+
+    // add role as 'class-name' to the $classes array
+    $classes[] = $roles[0];
+  }
+  
+  // return the $classes array
+  return $classes;
+}
+
+
+
+
+
