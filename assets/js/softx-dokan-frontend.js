@@ -1,6 +1,14 @@
 ;(function($){
-    // alert("I am working");
-   
+    
+  /*********************************************
+   *  seller dashboard front end customization *
+   * *******************************************/
+
+    $(document).ready(function() {
+
+    /** if vendor click on show product on public shop
+     * it will slideDown a field to set the price for public shop */
+
     $("#_is_public_product_checkbox").on("change",function(){
      
      var val= $(this).val();
@@ -38,7 +46,23 @@
      regular_price.val(selectedOptionPrice);
      }
     });
+
+    /********************
+     * my account page  *
+    *********************/
    
-   
+   /* only seller radio button active when load the page*/ 
+    $(".user-role").children("label").eq(1).find("input").trigger("click");
+  
+    /** by default seller related form field disabled.
+     * this funcation will set disabled = false afer 2s to enter value
+     */
+    window.setTimeout(function(){
+
+        $(".show_if_seller").find("input").prop("disabled",false);
+        
+        },2000);    
+
+      }); /** documnet ready close */
    })(jQuery);
-   
+

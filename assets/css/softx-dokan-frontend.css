@@ -28,3 +28,30 @@ body.woocommerce-shop:not(.logged-in) .price-wrapper,
 body.woocommerce-shop:not(.customer) .price-wrapper {
   display: none;
 }
+
+/**
+ * vendor registration my-account page*/
+
+ .woocommerce-account .vendor-customer-registration label:first-child {
+  display: none;
+}
+
+.woocommerce-account .show_if_seller {
+  display: block !important;
+}
+
+/******************** 
+* pop up login form *
+*********************/
+
+/*hide registration form on pop up login page*/
+#loginform #customer_login .col-2 {
+  display: none !important;
+}
+
+/* make the login form fullwidth */
+#loginform #customer_login .col-1.large-6 {
+
+  max-width: 100% !important;
+  flex-basis: 100% !important;
+}
