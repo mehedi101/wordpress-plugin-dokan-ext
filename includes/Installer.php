@@ -65,34 +65,39 @@ class Installer
         return [
             [
                 'name' => '150dkk',
-                'display_name' =>'150DKK',
+                'display_name' =>__('150DKK','softx-dokan'),
                 'args' => $Default_cap
             ],
             [
                 'name' => '200dkk',
-                'display_name' =>'200DKK',
+                'display_name' =>__('200DKK','softx-dokan'),
                 'args' => $Default_cap
             ],
             [
                 'name' => '300dkk',
-                'display_name' =>'300DKK',
+                'display_name' =>__('300DKK','softx-dokan'),
                 'args' => $Default_cap
             ],
             [
                 'name' => '500dkk',
-                'display_name' =>'500DKK',
+                'display_name' =>__('500DKK','softx-dokan'),
                 'args' => $Default_cap
             ],
             [
                 'name' => '800dkk',
-                'display_name' =>'800DKK',
+                'display_name' =>__('800DKK','softx-dokan'),
+                'args' => $Default_cap
+            ],
+            [
+                'name' => '1200dkk',
+                'display_name' =>__('1200DKK','softx-dokan'),
                 'args' => $Default_cap
             ],
             [
                 'name' => 'company',
-                'display_name' =>'Company',
+                'display_name' =>__('Company','softx-dokan'),
                 'args' => $Default_cap
-            ],
+            ]
         ];
 
         

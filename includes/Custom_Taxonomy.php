@@ -6,7 +6,7 @@ class Custom_Taxonomy
     public function init_taxonomy(){ 
         
         add_action( 'init', [$this, 'create_prices_hierarchical_taxonomy']);
-        add_action( 'init', [$this, 'create_brands_hierarchical_taxonomy']); 
+      //  add_action( 'init', [$this, 'create_brands_hierarchical_taxonomy']); 
         add_action( 'init', [$this, 'create_shops_taxonomy']); 
         add_action( 'shops_edit_form_fields', [$this, 'edit_shops_form_fields'], 10,2);
         add_action( 'edited_shops', [$this, 'update_top_content_term_meta'], 10,2);

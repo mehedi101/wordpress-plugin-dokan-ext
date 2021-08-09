@@ -1,4 +1,81 @@
 <?php
+add_filter('woocommerce_product_get_price', 'softx_custom_price_for_public_visitor', 10, 2);
+/**
+ * custom_price_WPA111772 
+ *
+ * filter the price based on category and user role
+ * @param  $price   
+ * @param  $product 
+ * @return 
+ */
+function softx_custom_price_for_public_visitor($price, $product) {
+
+  if (is_user_logged_in()  ){ 
+      return $price;
+    }else{
+      $price = "";
+      
+      } 
+      return $price;
+    }
+    
+
+
+/**
+ * add role as a class name for in the html body
+ * @return  array
+ */
+add_filter('body_class','softx_add_custome_css_class_to_body');
+function softx_add_custome_css_class_to_body($classes) {
+
+  if(is_user_logged_in()){ 
+    $user = wp_get_current_user();
+    $roles = ( array ) $user->roles;
+
+    // add role as 'class-name' to the $classes array
+    if(!empty($roles) && !is_wp_error($roles[0])){
+    $classes[] = $roles[0];
+	}	
+  }
+
+  
+  // return the $classes array
+  return $classes;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****************************************************************
+ * This is for public shop don't need Now
+ * **************************************************************
+ */
+
 //add_action( 'pre_get_posts', 'softx_custom_pre_get_posts_query' );
 //add_action( 'woocommerce_product_query', 'softx_custom_pre_get_posts_query' );
 
@@ -47,31 +124,7 @@ $q->set( 'meta_query', $meta_query );
 }
 
 
-add_filter('woocommerce_product_get_price', 'softx_custom_price_for_public_visitor', 10, 2);
-/**
- * custom_price_WPA111772 
- *
- * filter the price based on category and user role
- * @param  $price   
- * @param  $product 
- * @return 
- */
-function softx_custom_price_for_public_visitor($price, $product) {
 
-  $is_public = $product->get_meta('_is_public_product_checkbox');
-
-    if (is_user_logged_in() 
-    && ( current_user_can('administrator') || current_user_can('manage_company') ||  current_user_can('employee') ) ){ 
-      return $price;
-    }else{
-
-      if( $is_public == 'yes'){ 
-        $price = $product->get_meta('_public_product_price_field', true ); 
-      } 
-      return $price;
-    }
-    
-}
 
 /**
  * 
@@ -113,6 +166,7 @@ add_filter( 'manage_edit-product_columns', 'softx_add_public_price_column', 11);
 function softx_add_public_price_column($columns)
 {
   $columns['_public_product_price_field'] = __( 'public price', 'softx-dokan');
+ $columns['author'] = __( 'Butikker', 'softx-dokan');	
 
   return $columns;
 }
@@ -146,42 +200,49 @@ function softx_show_public_price_content($column, $product_id){
   }
 }
 
-/**
- * Disable add to cart for general visitors or customer
- * for only private shop products
- * @return void
- */
-add_action( 'wp_head','softx_disable_product_purchase',10,2);
-
-function softx_disable_product_purchase(){
-
-if (is_product() && !is_user_logged_in() && ! has_term( 'public-shop', 'shops')) {
-  // in product page
-  add_filter('woocommerce_is_purchasable', '__return_false');
-  }
-}
 
 
-/**
- * add role as a class name for in the html body
- * @return  array
- */
-add_filter('body_class','softx_add_custome_css_class_to_body');
-function softx_add_custome_css_class_to_body($classes) {
 
-  if(is_user_logged_in()){ 
-    $user = wp_get_current_user();
-    $roles = ( array ) $user->roles;
 
-    // add role as 'class-name' to the $classes array
-    $classes[] = $roles[0];
+
+
+
+/*******************************
+ * My account page customization 
+ *******************************/
+
+/*=== Account page new tab ===*/
+function softx_my_account_add_remove_menu_items( $items ) {
+  // Remove the logout menu item.
+  $logout = $items['customer-logout'];
+  unset( $items['customer-logout'] );
+    if(current_user_can( 'customer' )){
+      // Insert your custom endpoint.
+      $items['reorder-form'] = 'Genbestil';
+      $items['employee-list'] = 'Medarbejderliste';
+      $items['gift-order-list'] = 'Ordreliste';
+    } 
+    if(current_user_can( 'administrator' )){
+      $items['company-list'] = 'Alle Firmaer';
+      $items['brand-list'] = 'Alle brand';
+    }
+  // Insert back the logout item.
+  $items['customer-logout'] = $logout;
+  return $items;
+  }   
+  add_filter( 'woocommerce_account_menu_items', 'softx_my_account_add_remove_menu_items' );
+  
+  
+  add_filter ( 'woocommerce_account_menu_items', 'misha_remove_my_account_links' );
+  function misha_remove_my_account_links( $menu_links ){ 
+    unset( $menu_links['edit-address'] ); // Addresses
+    //unset( $menu_links['dashboard'] ); // Remove Dashboard
+    //unset( $menu_links['payment-methods'] ); // Remove Payment Methods
+    unset( $menu_links['orders'] ); // Remove Orders
+    unset( $menu_links['downloads'] ); // Disable Downloads
+    //unset( $menu_links['edit-account'] ); // Remove Account details tab
+    //unset( $menu_links['customer-logout'] ); // Remove Logout link 
+    return $menu_links; 
   }
   
-  // return the $classes array
-  return $classes;
-}
-
-
-
-
-
+  

@@ -11,7 +11,7 @@ class Dokan_Plugin_Override
          */
         add_action('softx_dokan_new_product_after_title_tag', [$this, 'softx_add_fields_after_title'], 10); 
 
-        add_action( 'dokan_new_product_after_product_tags',[$this, 'brands_tax_field'],10 );
+      //  add_action( 'dokan_new_product_after_product_tags',[$this, 'brands_tax_field'],10 );
         /*
         * Saving product field data for edit and update
         */
@@ -23,7 +23,7 @@ class Dokan_Plugin_Override
         * Showing fields data on product edit page
         */
         
-         add_action('dokan_product_edit_after_product_tags',[$this, 'show_on_edit_page'],99,2);
+       //  add_action('dokan_product_edit_after_product_tags',[$this, 'show_on_edit_page'],99,2);
 
          add_action('softx_dokan_product_edit_after_title',[$this, 'softx_fields_show_on_edit_page'],99,2);
         // showing on single product page
@@ -70,12 +70,12 @@ public function brands_tax_field(){ ?>
         if ( ! dokan_is_user_seller( get_current_user_id() ) ) {
             return;
         }
-
+/*
         if ( 
             ! empty( $postdata['brands'] ) && dokan_get_option( 'product_category_style', 'dokan_selling', 'single' ) == 'single' ) {
             wp_set_object_terms( $product_id, (int) $postdata['brands'], 'brands' );
         }
-        
+        */
         /**
          * Prices category 
          * Mehedi
@@ -157,7 +157,7 @@ public function brands_tax_field(){ ?>
     }
 
 
-
+/*
     public function show_product_code(){
       global $product;
 
@@ -173,7 +173,7 @@ public function brands_tax_field(){ ?>
         }
     }
 
-
+*/
 
     // dokan plugin new product override
 
@@ -220,13 +220,13 @@ public function brands_tax_field(){ ?>
                     'label' => __('Is public product')
                     ), 'checkbox' ); 
         ?>
-
+<!--
 <div id="public_product_price" class="dokan-form-group
-        <?php echo (get_post_meta( $post_id, '_is_public_product_checkbox', true ) == 'yes' ) ?"": 'dokan-hide'?>
+        <?php /*	echo (get_post_meta( $post_id, '_is_public_product_checkbox', true ) == 'yes' ) ?"": 'dokan-hide' */?>
         ">
     <p> <?php esc_html_e('public price', 'dokan-lite'); ?> :   <?php // echo get_post_meta( $post_id, '_is_public_product_checkbox', true ); ?></p>
 <?php dokan_post_input_box( $post_id, '_public_product_price_field', array( 'class' => 'dokan-product-public-price', 'placeholder' => __( '0.00', 'dokan-lite' ) ), 'price' ); ?>
-</div>
+</div> -->
 <!-- 
     **Mehedi
     ** Hide Price container from directly update 
@@ -262,6 +262,7 @@ public function brands_tax_field(){ ?>
             wp_dropdown_categories( apply_filters( 'dokan_product_cat_dropdown_args', $category_args ) );
             ?>
         </div>
+<!--
         <div class="dokan-form-group is_public_product">
             <label for="_is_public_product_checkbox"><?php esc_html_e('Product also sell on:')?>  <input type="checkbox" name="_is_public_product_checkbox" id="_is_public_product_checkbox" value="yes"> public 
             </label>
@@ -269,7 +270,7 @@ public function brands_tax_field(){ ?>
         <div id="public_product_price" class="dokan-form-group dokan-hide ">
         <input class="dokan-form-control" name="_public_product_price_field" id="_public_product_price_field" type="number" placeholder="<?php esc_attr_e( 'Public Price..', 'dokan-lite' ); ?>" value="<?php echo esc_attr( dokan_posted_input( '_public_product_price_field' ) ); ?>">
         </div>
-
+-->
     <?php 
 	}
 

@@ -21,14 +21,16 @@ added by mehedi
   display: none;
 }
 /*
-Hide price or logget out user and customer in shop page;
+Hide price or logget out user and customer in shop page and single product page;
 */
-
+/*
 body.woocommerce-shop:not(.logged-in) .price-wrapper, 
-body.woocommerce-shop:not(.customer) .price-wrapper {
+body.woocommerce-shop.customer .price-wrapper, 
+body.single-product:not(.logged-in):not(.public-shop-product) .price-wrapper, 
+body.single-product.customer:not(.public-shop-product) .price-wrapper {
   display: none;
 }
-
+*/
 /**
  * vendor registration my-account page*/
 
@@ -55,3 +57,31 @@ body.woocommerce-shop:not(.customer) .price-wrapper {
   max-width: 100% !important;
   flex-basis: 100% !important;
 }
+
+/************************
+* dokan plugin * 
+*************************/
+
+/** forntend seller  dashboard**/
+body.dokan-dashboard .dokan-profile-completeness .dokan-panel-body,
+body.dokan-dashboard li.withdraw,
+body.dokan-dashboard li.payment,  
+body.dokan-dashboard li.shipping,  
+body.dokan-dashboard li.shipstation,  
+body.dokan-dashboard li.coupons, 
+body.dokan-dashboard li.reports, 
+body.dokan-dashboard li.reviews, 
+body.dokan-dashboard li.announcement, 
+body.dokan-dashboard li.social,  
+body.dokan-dashboard li.seo,
+/*edit product form hide shipping and linked product */
+body.dokan-dashboard .dokan-product-shipping-tax,
+body.dokan-dashboard .dokan-linked-product-options{
+  display: none !important;
+}
+
+/*hide public product price for from seller add new and edit product*/
+body.dokan-dashboard .is_public_product,
+body.dokan-dashboard label.dokan-public-price {
+  display: none;
+} 
