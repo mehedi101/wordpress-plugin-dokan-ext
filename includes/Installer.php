@@ -63,11 +63,11 @@ class Installer
         ];
 
         return [
-            [
+           /*  [
                 'name' => '150dkk',
                 'display_name' =>__('150DKK','softx-dokan'),
                 'args' => $Default_cap
-            ],
+            ], */
             [
                 'name' => '200dkk',
                 'display_name' =>__('200DKK','softx-dokan'),
