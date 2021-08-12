@@ -108,6 +108,55 @@ function softx_my_account_add_remove_menu_items( $items ) {
     return $menu_links; 
   }
   
+function softx_show_delivery_address(){ 
+ // show product delivery address.
+ // get cart product ids
+ $delivery_address="";
+ $loginuser_id = get_current_user_id();
+ $get_order_id = get_user_meta($loginuser_id, 'company_order_id', true);
+ $get_company_id = get_user_meta($loginuser_id, 'company_id', true);
+ global $wpdb;
+
+$sql= $wpdb->prepare("SELECT
+wp_orderinfo.price_category, 
+wp_orderinfo.delivery_type, 
+wp_orderformdata.address AS company_address
+FROM
+{$wpdb->prefix}orderformdata
+INNER JOIN
+{$wpdb->prefix}orderinfo
+ON 
+  wp_orderformdata.id = wp_orderinfo.company_id
+WHERE
+wp_orderinfo.id = %d AND
+wp_orderinfo.company_id = %d", $get_order_id, $get_company_id);
+
+$result = $wpdb->get_row($sql);
+
+if( $result->delivery_type == 'company'){ 
+  $delivery_address = $result->company_address;
+}else{
+  $list ="<table class='delivery_address'>";
+  $list .= "<tr><th>vare</th><th>afhenter gaven ved forretningen </th></tr>";
+  foreach( WC()->cart->get_cart() as $cart_item ){
+
+
+    $post_obj    = get_post( $cart_item['product_id'] ); // The WP_Post object
+    $list .= sprintf("<tr><td>%s</td><td>%s</td></tr>",
+                  $post_obj->post_title , dokan_get_seller_address( $post_obj->post_author  )
+              ) ;
+   
+  }
+  $list .="</table>";
+  $delivery_address =  $list;
+}
+
+	
+  return  $delivery_address;
+ 
+  
+}
+
 
 
 /**
@@ -118,7 +167,7 @@ function softx_my_account_add_remove_menu_items( $items ) {
  *  
  **/
 function softx_custom_message_after_cart_table(){  
-  if( ! is_user_logged_in()){
+  if( ! is_user_logged_in()  && ! is_cart()){
   return;
   }
   if(current_user_can('employee') && ! current_user_can('administrator')){
@@ -126,14 +175,33 @@ function softx_custom_message_after_cart_table(){
     $currentuserRole= wp_get_current_user()->roles[0];
     $maximum =(int) str_replace("dkk","",$currentuserRole);
 
+    // show if cart amount is over the employee per order.
     if($cart_amt > $maximum){
       remove_action( 'woocommerce_proceed_to_checkout','woocommerce_button_proceed_to_checkout', 20);
-      echo "Du skal maximum have ".wc_price($maximum)." i din kurv for at bestille en ordre, din nuværende kurv total er ".wc_price($cart_amt);
-    }
-  }
 
+
+      wc_print_notice(
+				sprintf( 'Du skal maximum have %s i din kurv for at bestille en ordre, din nuværende kurv total er %s.' , 
+				wc_price($maximum), 
+				wc_price($cart_amt) 
+				), 'error'
+			);
+    }else{
+      if($cart_amt > 1 && $cart_amt < $maximum){ 
+        //* show address if available
+      //  wc_print_notice(softx_show_delivery_address(), 'success');
+        echo softx_show_delivery_address();
+      }
+    }
+   
+  
+  
+ 
+  }
+// 
 }
 add_action( 'woocommerce_after_cart_table', 'softx_custom_message_after_cart_table');
+//add_action( 'woocommerce_after_cart', 'softx_custom_message_after_cart_table');
 
 
 

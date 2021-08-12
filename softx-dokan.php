@@ -75,7 +75,8 @@ final class Dokan_Lite_Extension{
     public function activate()
     {
         update_option( 'dext_version', DEXT_VERSION ); 
-        (new Softx\Installer())->run();
+       $installer = new Softx\Installer();
+       $installer->run();
        
     }
 
