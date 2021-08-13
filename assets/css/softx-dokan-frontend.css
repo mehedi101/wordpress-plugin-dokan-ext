@@ -86,8 +86,11 @@ body.dokan-dashboard label.dokan-public-price {
   display: none;
 } 
 
-/*cart page */
-table.delivery_address {
+/*cart & checkout page */
+.delivery_address {
   color: #539e9b;
 }
-
+.delivery_address strong {
+  border-bottom: 2px solid;
+  text-transform: capitalize;
+}

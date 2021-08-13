@@ -15,12 +15,9 @@ add_filter('woocommerce_product_get_price', 'softx_custom_price_for_public_visit
  */
 function softx_custom_price_for_public_visitor($price, $product) {
 
-  if (is_user_logged_in()  ){ 
-      return $price;
-    }else{
-      $price = "";
-      
-      } 
+  if (! is_user_logged_in()  ){ 
+    $price = "";
+    } 
       return $price;
     }
    
@@ -79,7 +76,7 @@ function softx_my_account_add_remove_menu_items( $items ) {
   // Remove the logout menu item.
   $logout = $items['customer-logout'];
   unset( $items['customer-logout'] );
-    if(current_user_can( 'customer' )){
+    if(current_user_can( 'company' )){
       // Insert your custom endpoint.
       $items['reorder-form'] = 'Genbestil';
       $items['employee-list'] = 'Medarbejderliste';
@@ -108,9 +105,15 @@ function softx_my_account_add_remove_menu_items( $items ) {
     return $menu_links; 
   }
   
+ /**
+ * showing delivery address to the WooCommerce cart page
+ * for employee and company only
+ * @since 1.0.0
+ * @author Mehedi Hasan <hello@mehedihasn.com>
+ * @return  string
+ **/ 
 function softx_show_delivery_address(){ 
  // show product delivery address.
- // get cart product ids
  $delivery_address="";
  $loginuser_id = get_current_user_id();
  $get_order_id = get_user_meta($loginuser_id, 'company_order_id', true);
@@ -134,7 +137,11 @@ wp_orderinfo.company_id = %d", $get_order_id, $get_company_id);
 $result = $wpdb->get_row($sql);
 
 if( $result->delivery_type == 'company'){ 
-  $delivery_address = $result->company_address;
+  $delivery_address = "<p class='delivery_address'>
+    <strong>afhenter gaven fra</strong>
+    <br/>
+      <address>{$result->company_address}</address>
+  </p>";
 }else{
   $list ="<table class='delivery_address'>";
   $list .= "<tr><th>vare</th><th>afhenter gaven ved forretningen </th></tr>";
@@ -164,7 +171,7 @@ if( $result->delivery_type == 'company'){
  * for employee and company only
  * @since 1.0.0
  * @author Mehedi Hasan <hello@mehedihasn.com>
- *  
+ * @return  void
  **/
 function softx_custom_message_after_cart_table(){  
   if( ! is_user_logged_in()  && ! is_cart()){
@@ -187,10 +194,10 @@ function softx_custom_message_after_cart_table(){
 				), 'error'
 			);
     }else{
-      if($cart_amt > 1 && $cart_amt < $maximum){ 
+      if($cart_amt > 1 && $cart_amt <= $maximum){ 
         //* show address if available
       //  wc_print_notice(softx_show_delivery_address(), 'success');
-        echo softx_show_delivery_address();
+        echo  softx_show_delivery_address();
       }
     }
    
@@ -201,8 +208,22 @@ function softx_custom_message_after_cart_table(){
 // 
 }
 add_action( 'woocommerce_after_cart_table', 'softx_custom_message_after_cart_table');
+
+
+/**
+ * Checkout page customization
+ * @author Mehedi Hasan <hello@mehedihasn.com>
+ * @since 1.0.0
+ */
+// show delivery address after checkout billing form 
+add_action( 'woocommerce_after_checkout_form', 'softx_custom_message_after_cart_table');
 //add_action( 'woocommerce_after_cart', 'softx_custom_message_after_cart_table');
 
+// Removes Order Notes Title - Additional Information & Notes Field
+
+add_filter( 'woocommerce_enable_order_notes_field', '__return_false', 9999 );
+//remove payment 
+add_filter( 'woocommerce_cart_needs_payment', '__return_false' );
 
 
 
