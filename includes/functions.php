@@ -200,10 +200,6 @@ function softx_custom_message_after_cart_table(){
         echo  softx_show_delivery_address();
       }
     }
-   
-  
-  
- 
   }
 // 
 }
@@ -227,6 +223,38 @@ add_filter( 'woocommerce_cart_needs_payment', '__return_false' );
 
 
 
+//add_filter( 'woocommerce_product_query', 'softx_custom_pre_get_posts_query',9999 );
+
+function softx_custom_pre_get_posts_query( $meta_query ) {
+ 
+	if (  is_admin() || ! is_user_logged_in()) return;
+  $user = wp_get_current_user();
+  $roles = ['150dkk','200dkk','300dkk','500dkk','800dkk','1200dkk'];
+	if (  is_shop() &&  in_array($user->roles[0], $roles)) {
+    $rolePrice = (int) str_replace('dkk',"", $user->roles[0]);
+    $meta_query[] = [
+        'key' => '_price',
+        'value' => $rolePrice,
+        'compare' => '<=',
+        'type' => 'NUMERIC'
+      ];
+	
+	}
+  return $meta_query;
+ 
+}
+
+add_filter('woof_get_meta_query', 'softx_custom_pre_get_posts_query');
+
+/*add meta data to the order item*/ 
+/**
+ * Add meta data to the order item. 
+ * this funcationality has not created yet.
+ */
+add_action( 'woocommerce_checkout_update_order_meta', 'action_function_name_9603', 10, 2 );
+function action_function_name_9603( $order_id, $data ){
+	// action...
+}
 
 
 
@@ -255,7 +283,7 @@ add_filter( 'woocommerce_cart_needs_payment', '__return_false' );
 
 //add_action( 'pre_get_posts', 'softx_custom_pre_get_posts_query' );
 //add_action( 'woocommerce_product_query', 'softx_custom_pre_get_posts_query' );
-
+/* 
 function softx_custom_pre_get_posts_query( $q ) {
  
 	if ( ! $q->is_main_query() ) return;
@@ -266,14 +294,14 @@ function softx_custom_pre_get_posts_query( $q ) {
    # get all the terms id of prices taxonomy; 
   //$price_terms = get_terms('prices', ['hide_empty' => 1, 'fields' => 'ids']);
  
-	/* $q->set( 'tax_query', array(
+ $q->set( 'tax_query', array(
       array(
 			'taxonomy' => 'prices',
 			'field' => 'id',
 			'terms' => $price_terms, // Don't display products in these categories on the shop page
 			'operator' => 'NOT IN'
 		  )
-  ));  */
+  ));  
   $meta_query = array(
     'relation' => 'AND',
     array(
@@ -298,7 +326,7 @@ $q->set( 'meta_query', $meta_query );
    }
  
  
-}
+} */
 
 
 

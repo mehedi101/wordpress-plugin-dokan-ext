@@ -82,7 +82,7 @@ public function brands_tax_field(){ ?>
          */
         $prices = intval( $postdata['prices']);
         if ( $prices < 0 ) {
-            $errors[] = __( 'Please select a price category', 'dokan-lite' );
+            $errors[] = __( 'vælg en pris kategori', 'dokan-lite' ); // select a price category
         }else{
             /**
              * save price terms for the simple product
@@ -180,7 +180,8 @@ public function brands_tax_field(){ ?>
     public function softx_fields_show_on_edit_page($post, $post_id){ ?>
 
         <div class="dokan-form-group">
-            <label for="prices" class="form-label"><?php esc_html_e( 'Price category', 'dokan-lite' ); ?></label>
+            <label for="prices" class="form-label"><?php esc_html_e( 'Pris kategori', 'dokan-lite' ); ?></label>
+            
             <?php
             $prices = -1;
             $term = array();
@@ -191,7 +192,7 @@ public function brands_tax_field(){ ?>
             }
 
             $category_args =  array(
-                'show_option_none' => __( '- Select a price category -', 'dokan-lite' ),
+                'show_option_none' => __( '- vælg en pris kategori -', 'dokan-lite' ), // select a price category
                 'hierarchical'     => 1,
                 'hide_empty'       => 0,
                 'name'             => 'prices',
@@ -207,7 +208,7 @@ public function brands_tax_field(){ ?>
             wp_dropdown_categories( apply_filters( 'dokan_product_cat_dropdown_args', $category_args ) );
             ?>
             <div class="dokan-product-cat-alert dokan-hide">
-                <?php esc_html_e('Please choose a price category!', 'dokan-lite' ); ?>
+                <?php esc_html_e('vælg en pris kategori!', 'dokan-lite' ); ?>
             </div>
         </div>
 
@@ -246,7 +247,7 @@ public function brands_tax_field(){ ?>
             <?php
             $selected_cat  = dokan_posted_input( 'prices' ); 
             $category_args =  array(
-                'show_option_none' => __( '- Select a Price category -', 'dokan-lite' ),
+                'show_option_none' => __( '- vælg en pris kategori -', 'dokan-lite' ), // select a price category
                 'hierarchical'     => 1,
                 'hide_empty'       => 0,
                 'name'             => 'prices',

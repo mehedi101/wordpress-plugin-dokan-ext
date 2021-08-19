@@ -35,15 +35,18 @@
    
     $("#prices").on("change", function(){
      
-     var val= $(this).text();
+     
      var selectedOptionPrice = parseInt( $(this).find("option:selected").text() );
      var regular_price = $("#_regular_price");
-     //console.log(ppp);
-     console.log(selectedOptionPrice);
+     var sales_price = $("#_sale_price");
     
-     console.log(regular_price);
+    // console.log(sales_price);
      if( selectedOptionPrice > 1){
-     regular_price.val(selectedOptionPrice);
+      sales_price.val(selectedOptionPrice);
+      sales_price.trigger("keyup");
+     }else{
+       alert("Regular price must be greater than Price category price");
+      return regular_price.val("");
      }
     });
 
