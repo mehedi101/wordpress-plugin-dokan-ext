@@ -76,8 +76,14 @@ body.dokan-dashboard li.social,
 body.dokan-dashboard li.seo,
 /*edit product form hide shipping and linked product */
 body.dokan-dashboard .dokan-product-shipping-tax,
-body.dokan-dashboard .dokan-linked-product-options{
+body.dokan-dashboard .dokan-linked-product-options,
+body.dokan-dashboard .regular-price .vendor-earning{
   display: none !important;
+}
+
+body.dokan-dashboard .regular-price input#_regular_price {
+  margin-bottom: 0 !important;
+  height: 2.8em !important;
 }
 
 /*hide public product price for from seller add new and edit product*/
@@ -94,3 +100,4 @@ body.dokan-dashboard label.dokan-public-price {
   border-bottom: 2px solid;
   text-transform: capitalize;
 }
+
