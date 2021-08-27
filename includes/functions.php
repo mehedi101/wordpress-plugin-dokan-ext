@@ -121,30 +121,27 @@ function softx_show_delivery_address(){
  global $wpdb;
 
 $sql= $wpdb->prepare("SELECT
-wp_orderinfo.price_category, 
-wp_orderinfo.delivery_type, 
-wp_orderformdata.address AS company_address
+{$wpdb->prefix}orderinfo.price_category, 
+{$wpdb->prefix}orderinfo.delivery_type, 
+{$wpdb->prefix}orderformdata.company,
+{$wpdb->prefix}orderformdata.address AS company_address
 FROM
 {$wpdb->prefix}orderformdata
 INNER JOIN
 {$wpdb->prefix}orderinfo
 ON 
-  wp_orderformdata.id = wp_orderinfo.company_id
+{$wpdb->prefix}orderformdata.id = {$wpdb->prefix}orderinfo.company_id
 WHERE
-wp_orderinfo.id = %d AND
-wp_orderinfo.company_id = %d", $get_order_id, $get_company_id);
+{$wpdb->prefix}orderinfo.id = %d AND
+{$wpdb->prefix}orderinfo.company_id = %d", $get_order_id, $get_company_id);
 
 $result = $wpdb->get_row($sql);
-
-if( $result->delivery_type == 'company'){ 
-  $delivery_address = "<p class='delivery_address'>
-    <strong>afhenter gaven fra</strong>
-    <br/>
-      <address>{$result->company_address}</address>
-  </p>";
+$d_address = [];
+$d_address['company'] = $result->company;
+if( $result->delivery_type == 'companyrrr'){ 
+  $d_address['company_addr'] = $result->company_address;
 }else{
-  $list ="<table class='delivery_address'>";
-  $list .= "<tr><th>vare</th><th>afhenter gaven ved forretningen </th></tr>";
+
   foreach( WC()->cart->get_cart() as $cart_item ){
 
 
@@ -152,14 +149,15 @@ if( $result->delivery_type == 'company'){
     $list .= sprintf("<tr><td>%s</td><td>%s</td></tr>",
                   $post_obj->post_title , dokan_get_seller_address( $post_obj->post_author  )
               ) ;
+
+              $d_address['vendor_addr'][$post_obj->post_title] = dokan_get_seller_address( $post_obj->post_author  );    
    
   }
-  $list .="</table>";
-  $delivery_address =  $list;
 }
 
 	
-  return  $delivery_address;
+  // return  $delivery_address;
+  return  $d_address;
  
   
 }
@@ -197,12 +195,37 @@ function softx_custom_message_after_cart_table(){
       if($cart_amt > 1 && $cart_amt <= $maximum){ 
         //* show address if available
       //  wc_print_notice(softx_show_delivery_address(), 'success');
-        echo  softx_show_delivery_address();
+       // echo  softx_show_delivery_address();
+        $address = softx_show_delivery_address();
+    //   var_export( softx_show_delivery_address());
+
+        if(array_key_exists('company_addr',  $address )){ 
+          echo  
+          "<p class='delivery_address'>
+              <strong>afhenter gaven fra</strong>
+              <br/>
+              <address>{$address['company_addr']}</address>
+          </p>";
+        }elseif(array_key_exists('vendor_addr',  $address )){ 
+          $list ="<table class='delivery_address'>";
+          $list .= "<tr><th>vare</th><th>afhenter gaven ved forretningen </th></tr>";
+
+          foreach($address['vendor_addr'] as $title => $addr ){ 
+            $list .= sprintf("<tr><td>%s</td><td>%s</td></tr>",
+            $title , $addr) ;
+          }
+          $list .="</table>";
+         echo $list;
+        }else{ 
+          var_export($address);
+        }
+
       }
     }
   }
 // 
 }
+// show delivery address after cart table 
 add_action( 'woocommerce_after_cart_table', 'softx_custom_message_after_cart_table');
 
 
@@ -257,10 +280,19 @@ function action_function_name_9603( $order_id, $data ){
 }
 
 
+/* add_action('woocommerce_checkout_create_order_line_item', 'action_checkout_create_order_line_item', 10, 4 );
+function action_checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
+    $item->update_meta_data( '_company_name', 'DC Company' );
+} */
 
+add_action( 'woocommerce_add_order_item_meta', 'add_order_item_meta', 10, 2 );
 
+function add_order_item_meta($item_id, $values) {
+    $key = '_company_name'; // Define your key here
+    $value = 'DC Company'; // Get your value here
 
-
+    wc_update_order_item_meta($item_id, $key, $value);
+}
 
 
 
