@@ -105,6 +105,41 @@ function softx_my_account_add_remove_menu_items( $items ) {
     return $menu_links; 
   }
   
+  /**
+   * Get company order details by 
+   *
+   * @param int $loginuser_id
+   * @return array || object
+   */
+  function softx_get_company_order_info_by_employee_id($loginuser_id){ 
+    // show product delivery address.
+
+    $get_order_id = get_user_meta($loginuser_id, 'company_order_id', true);
+    $get_company_id = get_user_meta($loginuser_id, 'company_id', true);
+    global $wpdb;
+
+    $sql= $wpdb->prepare("SELECT
+    {$wpdb->prefix}orderinfo.price_category, 
+    {$wpdb->prefix}orderinfo.delivery_type, 
+    {$wpdb->prefix}orderinfo.expire_date AS delivery_date, 
+    {$wpdb->prefix}orderformdata.company,
+    {$wpdb->prefix}orderformdata.address AS company_address
+    FROM
+    {$wpdb->prefix}orderformdata
+    INNER JOIN
+    {$wpdb->prefix}orderinfo
+    ON 
+    {$wpdb->prefix}orderformdata.id = {$wpdb->prefix}orderinfo.company_id
+    WHERE
+    {$wpdb->prefix}orderinfo.id = %d AND
+    {$wpdb->prefix}orderinfo.company_id = %d", $get_order_id, $get_company_id);
+
+    $result = $wpdb->get_row($sql);
+
+    return $result;
+
+  }
+
  /**
  * showing delivery address to the WooCommerce cart page
  * for employee and company only
@@ -113,32 +148,13 @@ function softx_my_account_add_remove_menu_items( $items ) {
  * @return  string
  **/ 
 function softx_show_delivery_address(){ 
- // show product delivery address.
- $delivery_address="";
- $loginuser_id = get_current_user_id();
- $get_order_id = get_user_meta($loginuser_id, 'company_order_id', true);
- $get_company_id = get_user_meta($loginuser_id, 'company_id', true);
- global $wpdb;
-
-$sql= $wpdb->prepare("SELECT
-{$wpdb->prefix}orderinfo.price_category, 
-{$wpdb->prefix}orderinfo.delivery_type, 
-{$wpdb->prefix}orderformdata.company,
-{$wpdb->prefix}orderformdata.address AS company_address
-FROM
-{$wpdb->prefix}orderformdata
-INNER JOIN
-{$wpdb->prefix}orderinfo
-ON 
-{$wpdb->prefix}orderformdata.id = {$wpdb->prefix}orderinfo.company_id
-WHERE
-{$wpdb->prefix}orderinfo.id = %d AND
-{$wpdb->prefix}orderinfo.company_id = %d", $get_order_id, $get_company_id);
-
-$result = $wpdb->get_row($sql);
 $d_address = [];
+$loginuser_id = get_current_user_id();
+// get company order details by logged in user. 
+$result = softx_get_company_order_info_by_employee_id($loginuser_id); 
+
 $d_address['company'] = $result->company;
-if( $result->delivery_type == 'companyrrr'){ 
+if( $result->delivery_type == 'company'){ 
   $d_address['company_addr'] = $result->company_address;
 }else{
 
@@ -287,11 +303,25 @@ function action_checkout_create_order_line_item( $item, $cart_item_key, $values,
 
 add_action( 'woocommerce_add_order_item_meta', 'add_order_item_meta', 10, 2 );
 
-function add_order_item_meta($item_id, $values) {
-    $key = '_company_name'; // Define your key here
-    $value = 'DC Company'; // Get your value here
+function add_order_item_meta($item_id, $cart_item) {
 
-    wc_update_order_item_meta($item_id, $key, $value);
+  $loginuser_id = get_current_user_id();
+  $get_company_order = softx_get_company_order_info_by_employee_id($loginuser_id);
+  $product = get_post( $cart_item['product_id']);
+  $vendor  = dokan()->vendor->get( $product->post_author );
+    
+    $custom_meta_data = [];
+    $custom_meta_data['_company_name'] = $get_company_order->company;
+    $custom_meta_data['_venodor_shop'] = $vendor->get_shop_name();
+    $custom_meta_data['_delivery_type'] = $get_company_order->delivery_type;
+   // $custom_meta_data['_order_created'] = "2021-8-12";
+    $custom_meta_data['_delivery_date'] = $get_company_order->delivery_date;
+
+    foreach($custom_meta_data as $key => $value){ 
+      wc_update_order_item_meta($item_id, $key, $value);
+    }
+
+   
 }
 
 

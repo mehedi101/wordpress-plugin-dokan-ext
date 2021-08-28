@@ -54,7 +54,7 @@ class Installer
     public function create_orderinfo_table() {
         global $wpdb;
 
-        $sql = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}softx_orderinfo` (
+        $sql = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}st_orderinfo` (
           `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
           `company_id` bigint(20) DEFAULT NULL,
           `number_of_gift` int(11) NOT NULL,
