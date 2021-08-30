@@ -268,7 +268,12 @@ function softx_custom_pre_get_posts_query( $meta_query ) {
  
 	if (  is_admin() || ! is_user_logged_in()) return;
   $user = wp_get_current_user();
-  $roles = ['150dkk','200dkk','300dkk','500dkk','800dkk','1200dkk'];
+  global $wpdb;
+  $sql = "SELECT slug FROM {$wpdb->prefix}terms AS t INNER JOIN {$wpdb->prefix}term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy IN ('prices') ORDER BY t.slug ASC";
+  $roles = $wpdb->get_col($sql);
+ // var_export($prices);
+  //wp_die(); 
+ // $roles = ['150dkk','200dkk','300dkk','500dkk','800dkk','1200dkk'];
 	if (  is_shop() &&  in_array($user->roles[0], $roles)) {
     $rolePrice = (int) str_replace('dkk',"", $user->roles[0]);
     $meta_query[] = [
