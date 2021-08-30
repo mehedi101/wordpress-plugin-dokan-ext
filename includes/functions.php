@@ -1,4 +1,19 @@
 <?php
+function is_employee(){ 
+  if (  ! is_user_logged_in()  || current_user_can('administrator') ) return false;
+
+  $user = wp_get_current_user();
+  global $wpdb;
+  $sql = "SELECT slug FROM {$wpdb->prefix}terms AS t INNER JOIN {$wpdb->prefix}term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy IN ('prices') ORDER BY t.slug ASC";
+  $roles = $wpdb->get_col($sql);
+ // var_export($prices);
+  //wp_die(); 
+	if ( in_array($user->roles[0], $roles)){ 
+    return $user->roles[0];
+  }
+  return false;
+
+}
 
 function softx_get_maximum_order_amount_by_employee(){ 
   /// we will work on it 
@@ -157,6 +172,8 @@ $d_address['company'] = $result->company;
 if( $result->delivery_type == 'company'){ 
   $d_address['company_addr'] = $result->company_address;
 }else{
+  $list ="<table class='delivery_address'>";
+  $list .= "<tr><th>vare</th><th>afhenter gaven ved forretningen </th></tr>";
 
   foreach( WC()->cart->get_cart() as $cart_item ){
 
@@ -191,10 +208,11 @@ function softx_custom_message_after_cart_table(){
   if( ! is_user_logged_in()  && ! is_cart()){
   return;
   }
-  if(current_user_can('employee') && ! current_user_can('administrator')){
+  $is_emp = is_employee();
+  if($is_emp){
     $cart_amt =  WC()->cart->subtotal;
-    $currentuserRole= wp_get_current_user()->roles[0];
-    $maximum =(int) str_replace("dkk","",$currentuserRole);
+   // $currentuserRole= wp_get_current_user()->roles[0];
+    $maximum =(int) str_replace("dkk","",$is_emp);
 
     // show if cart amount is over the employee per order.
     if($cart_amt > $maximum){
@@ -266,16 +284,9 @@ add_filter( 'woocommerce_cart_needs_payment', '__return_false' );
 
 function softx_custom_pre_get_posts_query( $meta_query ) {
  
-	if (  is_admin() || ! is_user_logged_in()) return;
-  $user = wp_get_current_user();
-  global $wpdb;
-  $sql = "SELECT slug FROM {$wpdb->prefix}terms AS t INNER JOIN {$wpdb->prefix}term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy IN ('prices') ORDER BY t.slug ASC";
-  $roles = $wpdb->get_col($sql);
- // var_export($prices);
-  //wp_die(); 
- // $roles = ['150dkk','200dkk','300dkk','500dkk','800dkk','1200dkk'];
-	if (  is_shop() &&  in_array($user->roles[0], $roles)) {
-    $rolePrice = (int) str_replace('dkk',"", $user->roles[0]);
+  $is_emp = is_employee();
+	if (  is_shop() &&  $is_emp ) {
+    $rolePrice = (int) str_replace('dkk',"", $is_emp);
     $meta_query[] = [
         'key' => '_price',
         'value' => $rolePrice,
@@ -321,6 +332,12 @@ function add_order_item_meta($item_id, $cart_item) {
     $custom_meta_data['_delivery_type'] = $get_company_order->delivery_type;
    // $custom_meta_data['_order_created'] = "2021-8-12";
     $custom_meta_data['_delivery_date'] = $get_company_order->delivery_date;
+    if( $get_company_order->delivery_type == 'company'){ 
+      $custom_meta_data['_delivery_addr'] = $get_company_order->company_address;
+    }else{
+      $custom_meta_data['_delivery_addr'] = dokan_get_seller_address( $product->post_author  );
+    }
+
 
     foreach($custom_meta_data as $key => $value){ 
       wc_update_order_item_meta($item_id, $key, $value);
