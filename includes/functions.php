@@ -9,7 +9,7 @@ function is_employee($id=null) {
   $roles = $wpdb->get_col($sql);
  // var_export($prices);
   //wp_die(); 
-	if ( in_array($user->roles[0], $roles)){ 
+	if ( in_array(strtolower($user->roles[0]), $roles)){ 
     return [
       'id' => $user->ID,
       'role' => $user->roles[0],
@@ -221,7 +221,7 @@ function softx_check_employee_maximum_buying_amount(){
   if($is_emp){
     $cart_amt =  WC()->cart->subtotal;
    // $currentuserRole= wp_get_current_user()->roles[0];
-    $maximum =(int) str_replace("dkk","",$is_emp['role']);
+    $maximum =(int) str_replace("dkk","",strtolower($is_emp['role']));
 
     // show if cart amount is over the employee per order.
     if($cart_amt > $maximum){
@@ -269,7 +269,6 @@ function prefix_update_existing_cart_item_meta() {
   $delivery_type = $get_company_order->delivery_type;
 
 	foreach( $cart as $cart_item_id=>$cart_item ) {
-   $cart_item['afhentnings_steder'] =$delivery_type;
    $cart_item['firma'] =$get_company_order->company;
    $cart_item['afhentningsdato'] =$get_company_order->delivery_date;
    $cart_item['kontakt_person'] =$get_company_order->contact_person;
@@ -277,6 +276,7 @@ function prefix_update_existing_cart_item_meta() {
    $cart_item['firma_telefon'] =$get_company_order->direct_phone;
    $vendor = softx_get_vendor_shop_info($cart_item['product_id']);
    $cart_item['butik'] = $vendor['name'];
+   $cart_item['afhentnings_steder'] =$delivery_type;
   if( $delivery_type == 'firma'){ 
     $cart_item['adresse'] = $get_company_order->company_address;
   }else{ 
@@ -337,9 +337,7 @@ add_filter( 'woocommerce_get_item_data', 'plugin_republic_get_item_data', 10, 2 
     if( isset( $values['firma_telefon'] ) ) {
       $item->add_meta_data( __( 'firma_telefon', 'softx-dokan' ), $values['firma_telefon'], true );
     }
-    if( isset( $values['afhentnings_steder'] ) ) {
-      $item->add_meta_data( __( 'afhentnings_steder', 'softx-dokan' ), $values['afhentnings_steder'], true );
-    }
+   
     if( isset( $values['afhentningsdato'] ) ) {
       $item->add_meta_data( __( 'afhentningsdato', 'softx-dokan' ), $values['afhentningsdato'], true );
     }  
@@ -347,7 +345,9 @@ add_filter( 'woocommerce_get_item_data', 'plugin_republic_get_item_data', 10, 2 
     if( isset( $values['vendor_name'] ) ) {
       $item->add_meta_data( __( 'vendor_name', 'softx-dokan' ), $values['vendor_name'], true );
     }
-
+    if( isset( $values['afhentnings_steder'] ) ) {
+      $item->add_meta_data( __( 'afhentnings_steder', 'softx-dokan' ), $values['afhentnings_steder'], true );
+    }
     if( isset( $values['adresse'] ) ) {
       $item->add_meta_data( __( 'adresse', 'softx-dokan' ), $values['adresse'], true );
     }
