@@ -1,15 +1,23 @@
 <?php
-function is_employee(){ 
+function is_employee($id=null) { 
   if (  ! is_user_logged_in()  || current_user_can('administrator') ) return false;
+  $id = !empty($id) ? (int) $id : get_current_user_id();
+  $user = get_user_by('id', $id);
 
-  $user = wp_get_current_user();
   global $wpdb;
   $sql = "SELECT slug FROM {$wpdb->prefix}terms AS t INNER JOIN {$wpdb->prefix}term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy IN ('prices') ORDER BY t.slug ASC";
   $roles = $wpdb->get_col($sql);
  // var_export($prices);
   //wp_die(); 
 	if ( in_array($user->roles[0], $roles)){ 
-    return $user->roles[0];
+    return [
+      'id' => $user->ID,
+      'role' => $user->roles[0],
+      'name' => $user->display_name,
+      'emp_email' => $user->user_email,
+      'company_id' => get_user_meta($user->ID, 'company_id', true),
+      'order_id' => get_user_meta($user->ID, 'company_order_id', true)
+    ];
   }
   return false;
 
@@ -126,11 +134,8 @@ function softx_my_account_add_remove_menu_items( $items ) {
    * @param int $loginuser_id
    * @return array || object
    */
-  function softx_get_company_order_info_by_employee_id($loginuser_id){ 
+  function softx_get_company_order_info_by_employee_id($loginuser_id, $get_order_id, $get_company_id){ 
     // show product delivery address.
-
-    $get_order_id = get_user_meta($loginuser_id, 'company_order_id', true);
-    $get_company_id = get_user_meta($loginuser_id, 'company_id', true);
     global $wpdb;
 
     $sql= $wpdb->prepare("SELECT
@@ -138,6 +143,9 @@ function softx_my_account_add_remove_menu_items( $items ) {
     {$wpdb->prefix}orderinfo.delivery_type, 
     {$wpdb->prefix}orderinfo.expire_date AS delivery_date, 
     {$wpdb->prefix}orderformdata.company,
+    {$wpdb->prefix}orderformdata.contact_person,
+    {$wpdb->prefix}orderformdata.email,
+    {$wpdb->prefix}orderformdata.direct_phone,
     {$wpdb->prefix}orderformdata.address AS company_address
     FROM
     {$wpdb->prefix}orderformdata
@@ -162,28 +170,29 @@ function softx_my_account_add_remove_menu_items( $items ) {
  * @author Mehedi Hasan <hello@mehedihasn.com>
  * @return  string
  **/ 
-function softx_show_delivery_address(){ 
+/* function softx_show_delivery_address(){ 
 $d_address = [];
 $loginuser_id = get_current_user_id();
 // get company order details by logged in user. 
-$result = softx_get_company_order_info_by_employee_id($loginuser_id); 
+//$result = softx_get_company_order_info_by_employee_id($loginuser_id); 
 
 $d_address['company'] = $result->company;
-if( $result->delivery_type == 'company'){ 
+if( $result->delivery_type == 'companyrr'){ 
   $d_address['company_addr'] = $result->company_address;
 }else{
-  $list ="<table class='delivery_address'>";
-  $list .= "<tr><th>vare</th><th>afhenter gaven ved forretningen </th></tr>";
-
+ 
   foreach( WC()->cart->get_cart() as $cart_item ){
 
 
-    $post_obj    = get_post( $cart_item['product_id'] ); // The WP_Post object
-    $list .= sprintf("<tr><td>%s</td><td>%s</td></tr>",
-                  $post_obj->post_title , dokan_get_seller_address( $post_obj->post_author  )
-              ) ;
-
-              $d_address['vendor_addr'][$post_obj->post_title] = dokan_get_seller_address( $post_obj->post_author  );    
+    $product    = get_post( $cart_item['product_id'] ); // The WP_Post object
+    $vendor_shop= dokan()->vendor->get( $product->post_author )->get_shop_name();
+    
+    $vendor_address  = sprintf( 
+      "<address><p><span>Butik: %s</span></p><p>%s</p></address>", 
+      $vendor_shop, dokan_get_seller_address( $product->post_author  )
+      ) ;
+   
+      $d_address['vendor_addr'][$product->post_title] =     $vendor_address;
    
   }
 }
@@ -193,7 +202,7 @@ if( $result->delivery_type == 'company'){
   return  $d_address;
  
   
-}
+} */
 
 
 
@@ -204,7 +213,7 @@ if( $result->delivery_type == 'company'){
  * @author Mehedi Hasan <hello@mehedihasn.com>
  * @return  void
  **/
-function softx_custom_message_after_cart_table(){  
+function softx_check_employee_maximum_buying_amount(){  
   if( ! is_user_logged_in()  && ! is_cart()){
   return;
   }
@@ -212,7 +221,7 @@ function softx_custom_message_after_cart_table(){
   if($is_emp){
     $cart_amt =  WC()->cart->subtotal;
    // $currentuserRole= wp_get_current_user()->roles[0];
-    $maximum =(int) str_replace("dkk","",$is_emp);
+    $maximum =(int) str_replace("dkk","",$is_emp['role']);
 
     // show if cart amount is over the employee per order.
     if($cart_amt > $maximum){
@@ -225,52 +234,127 @@ function softx_custom_message_after_cart_table(){
 				wc_price($cart_amt) 
 				), 'error'
 			);
-    }else{
-      if($cart_amt > 1 && $cart_amt <= $maximum){ 
-        //* show address if available
-      //  wc_print_notice(softx_show_delivery_address(), 'success');
-       // echo  softx_show_delivery_address();
-        $address = softx_show_delivery_address();
-    //   var_export( softx_show_delivery_address());
-
-        if(array_key_exists('company_addr',  $address )){ 
-          echo  
-          "<p class='delivery_address'>
-              <strong>afhenter gaven fra</strong>
-              <br/>
-              <address>{$address['company_addr']}</address>
-          </p>";
-        }elseif(array_key_exists('vendor_addr',  $address )){ 
-          $list ="<table class='delivery_address'>";
-          $list .= "<tr><th>vare</th><th>afhenter gaven ved forretningen </th></tr>";
-
-          foreach($address['vendor_addr'] as $title => $addr ){ 
-            $list .= sprintf("<tr><td>%s</td><td>%s</td></tr>",
-            $title , $addr) ;
-          }
-          $list .="</table>";
-         echo $list;
-        }else{ 
-          var_export($address);
-        }
-
-      }
     }
   }
 // 
 }
-// show delivery address after cart table 
-add_action( 'woocommerce_after_cart_table', 'softx_custom_message_after_cart_table');
 
-
+add_action( 'woocommerce_after_cart_table', 'softx_check_employee_maximum_buying_amount');
 /**
  * Checkout page customization
  * @author Mehedi Hasan <hello@mehedihasn.com>
  * @since 1.0.0
  */
 // show delivery address after checkout billing form 
-add_action( 'woocommerce_after_checkout_form', 'softx_custom_message_after_cart_table');
-//add_action( 'woocommerce_after_cart', 'softx_custom_message_after_cart_table');
+add_action( 'woocommerce_after_checkout_form', 'softx_check_employee_maximum_buying_amount');
+
+function softx_get_vendor_shop_info($product_id){ 
+  $product = get_post( $product_id);
+  $vendor_shop_name  = dokan()->vendor->get( $product->post_author )->get_shop_name();
+  $vendor_delivery_addr =  dokan_get_seller_address( $product->post_author  );
+
+  return [  'name' => $vendor_shop_name, 'adresse' => $vendor_delivery_addr];
+}
+
+
+
+function prefix_update_existing_cart_item_meta() {
+	$cart = WC()->cart->cart_contents;
+
+  $is_emp = is_employee();
+  if($is_emp){
+
+  $get_company_order = softx_get_company_order_info_by_employee_id($is_emp['id'], $is_emp['order_id'], $is_emp['company_id']);
+
+  $delivery_type = $get_company_order->delivery_type;
+
+	foreach( $cart as $cart_item_id=>$cart_item ) {
+   $cart_item['afhentnings_steder'] =$delivery_type;
+   $cart_item['firma'] =$get_company_order->company;
+   $cart_item['afhentningsdato'] =$get_company_order->delivery_date;
+   $cart_item['kontakt_person'] =$get_company_order->contact_person;
+   $cart_item['firma_email'] =$get_company_order->email;
+   $cart_item['firma_telefon'] =$get_company_order->direct_phone;
+   $vendor = softx_get_vendor_shop_info($cart_item['product_id']);
+   $cart_item['butik'] = $vendor['name'];
+  if( $delivery_type == 'firma'){ 
+    $cart_item['adresse'] = $get_company_order->company_address;
+  }else{ 
+    $cart_item['adresse'] = $vendor['adresse'];
+  }  
+	WC()->cart->cart_contents[$cart_item_id] = $cart_item;
+	}
+	WC()->cart->set_session();
+
+  }
+  // is emp end; 
+   }  
+   add_action( 'woocommerce_before_calculate_totals','prefix_update_existing_cart_item_meta', 10, 1);
+
+
+/**
+ * Display custom item data in the cart
+ */
+function plugin_republic_get_item_data( $item_data, $cart_item_data ) {
+
+  if( isset( $cart_item_data['afhentnings_steder'])  ){ 
+   if($cart_item_data['afhentnings_steder'] == 'firma' ){
+    $item_data[] = array(
+      'key' => __( 'Afhentnings steder', 'softx-dokan' ),
+      'value' =>  "<strong>Firma: {$cart_item_data['firma']}</strong><span>{$cart_item_data['adresse']}</span>"
+    );
+   }else{
+    $item_data[] = array(
+      'key' => __( 'Afhentnings steder', 'softx-dokan' ),
+      'value' =>  "<strong>Butik: {$cart_item_data['name']}</strong><span>{$cart_item_data['adresse']}</span>"
+    );
+   }
+  }
+
+	return $item_data;
+  }
+add_filter( 'woocommerce_get_item_data', 'plugin_republic_get_item_data', 10, 2 ); 
+
+/**
+ * Add custom meta to order
+ */
+
+  function plugin_republic_checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
+ 
+    
+    if( isset( $values['firma'] ) ) {
+      $item->add_meta_data( __( 'firma', 'softx-dokan' ), $values['firma'], true );
+    }
+
+    if( isset( $values['kontakt_person'] ) ) {
+      $item->add_meta_data( __( 'kontakt_person', 'softx-dokan' ), $values['kontakt_person'], true );
+    }
+
+    if( isset( $values['firma_email'] ) ) {
+      $item->add_meta_data( __( 'firma_email', 'softx-dokan' ), $values['firma_email'], true );
+    }
+
+    if( isset( $values['firma_telefon'] ) ) {
+      $item->add_meta_data( __( 'firma_telefon', 'softx-dokan' ), $values['firma_telefon'], true );
+    }
+    if( isset( $values['afhentnings_steder'] ) ) {
+      $item->add_meta_data( __( 'afhentnings_steder', 'softx-dokan' ), $values['afhentnings_steder'], true );
+    }
+    if( isset( $values['afhentningsdato'] ) ) {
+      $item->add_meta_data( __( 'afhentningsdato', 'softx-dokan' ), $values['afhentningsdato'], true );
+    }  
+
+    if( isset( $values['vendor_name'] ) ) {
+      $item->add_meta_data( __( 'vendor_name', 'softx-dokan' ), $values['vendor_name'], true );
+    }
+
+    if( isset( $values['adresse'] ) ) {
+      $item->add_meta_data( __( 'adresse', 'softx-dokan' ), $values['adresse'], true );
+    }
+  
+   }
+   add_action( 'woocommerce_checkout_create_order_line_item', 'plugin_republic_checkout_create_order_line_item', 10, 4 );
+
 
 // Removes Order Notes Title - Additional Information & Notes Field
 
@@ -286,7 +370,7 @@ function softx_custom_pre_get_posts_query( $meta_query ) {
  
   $is_emp = is_employee();
 	if (  is_shop() &&  $is_emp ) {
-    $rolePrice = (int) str_replace('dkk',"", $is_emp);
+    $rolePrice = (int) str_replace('dkk',"", $is_emp['role']);
     $meta_query[] = [
         'key' => '_price',
         'value' => $rolePrice,
@@ -300,63 +384,6 @@ function softx_custom_pre_get_posts_query( $meta_query ) {
 }
 
 add_filter('woof_get_meta_query', 'softx_custom_pre_get_posts_query');
-
-/*add meta data to the order item*/ 
-/**
- * Add meta data to the order item. 
- * this funcationality has not created yet.
- */
-add_action( 'woocommerce_checkout_update_order_meta', 'action_function_name_9603', 10, 2 );
-function action_function_name_9603( $order_id, $data ){
-	// action...
-}
-
-
-/* add_action('woocommerce_checkout_create_order_line_item', 'action_checkout_create_order_line_item', 10, 4 );
-function action_checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
-    $item->update_meta_data( '_company_name', 'DC Company' );
-} */
-
-add_action( 'woocommerce_add_order_item_meta', 'add_order_item_meta', 10, 2 );
-
-function add_order_item_meta($item_id, $cart_item) {
-
-  $loginuser_id = get_current_user_id();
-  $get_company_order = softx_get_company_order_info_by_employee_id($loginuser_id);
-  $product = get_post( $cart_item['product_id']);
-  $vendor  = dokan()->vendor->get( $product->post_author );
-    
-    $custom_meta_data = [];
-    $custom_meta_data['_company_name'] = $get_company_order->company;
-    $custom_meta_data['_venodor_shop'] = $vendor->get_shop_name();
-    $custom_meta_data['_delivery_type'] = $get_company_order->delivery_type;
-   // $custom_meta_data['_order_created'] = "2021-8-12";
-    $custom_meta_data['_delivery_date'] = $get_company_order->delivery_date;
-    if( $get_company_order->delivery_type == 'company'){ 
-      $custom_meta_data['_delivery_addr'] = $get_company_order->company_address;
-    }else{
-      $custom_meta_data['_delivery_addr'] = dokan_get_seller_address( $product->post_author  );
-    }
-
-
-    foreach($custom_meta_data as $key => $value){ 
-      wc_update_order_item_meta($item_id, $key, $value);
-    }
-
-   
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -488,9 +515,6 @@ function softx_show_public_price_content($column, $product_id){
       break;
   }
 }
-
-
-
 
 
 
