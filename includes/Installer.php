@@ -142,8 +142,18 @@ class Installer
                 'args' => $Default_cap
             ],
             [
+                'name' => '700dkk',
+                'display_name' =>__('700DKK','softx-dokan'),
+                'args' => $Default_cap
+            ],
+            [
                 'name' => '800dkk',
                 'display_name' =>__('800DKK','softx-dokan'),
+                'args' => $Default_cap
+            ],
+            [
+                'name' => '1000dkk',
+                'display_name' =>__('1000DKK','softx-dokan'),
                 'args' => $Default_cap
             ],
             [

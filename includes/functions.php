@@ -1,6 +1,7 @@
 <?php
 function is_employee($id=null) { 
   if (  ! is_user_logged_in()  || current_user_can('administrator') ) return false;
+
   $id = !empty($id) ? (int) $id : get_current_user_id();
   $user = get_user_by('id', $id);
 
