@@ -49,7 +49,7 @@ class Custom_Taxonomy
           ));
 
         //  $prices_terms = ['150DKK','200DKK','300DKK','500DKK','800DKK','1200DKK'];
-          $prices_terms = ['200DKK','300DKK','500DKK','800DKK','1200DKK'];
+          $prices_terms = ['200DKK','300DKK','500DKK','700DKK','800DKK','1000DKK','1200DKK'];
           foreach($prices_terms as $term){  
             $this->softx_create_taxonomy_term($term, 'prices');
           }

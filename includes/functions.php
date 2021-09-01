@@ -164,49 +164,6 @@ function softx_my_account_add_remove_menu_items( $items ) {
 
   }
 
- /**
- * showing delivery address to the WooCommerce cart page
- * for employee and company only
- * @since 1.0.0
- * @author Mehedi Hasan <hello@mehedihasn.com>
- * @return  string
- **/ 
-/* function softx_show_delivery_address(){ 
-$d_address = [];
-$loginuser_id = get_current_user_id();
-// get company order details by logged in user. 
-//$result = softx_get_company_order_info_by_employee_id($loginuser_id); 
-
-$d_address['company'] = $result->company;
-if( $result->delivery_type == 'companyrr'){ 
-  $d_address['company_addr'] = $result->company_address;
-}else{
- 
-  foreach( WC()->cart->get_cart() as $cart_item ){
-
-
-    $product    = get_post( $cart_item['product_id'] ); // The WP_Post object
-    $vendor_shop= dokan()->vendor->get( $product->post_author )->get_shop_name();
-    
-    $vendor_address  = sprintf( 
-      "<address><p><span>Butik: %s</span></p><p>%s</p></address>", 
-      $vendor_shop, dokan_get_seller_address( $product->post_author  )
-      ) ;
-   
-      $d_address['vendor_addr'][$product->post_title] =     $vendor_address;
-   
-  }
-}
-
-	
-  // return  $delivery_address;
-  return  $d_address;
- 
-  
-} */
-
-
-
 /**
  * Adding new funcaitonality to the WooCommerce cart page
  * for employee and company only
@@ -235,6 +192,20 @@ function softx_check_employee_maximum_buying_amount(){
 				wc_price($cart_amt) 
 				), 'error'
 			);
+    }elseif($cart_amt < $maximum){
+      remove_action( 'woocommerce_proceed_to_checkout','woocommerce_button_proceed_to_checkout', 20);
+
+
+      wc_print_notice(
+        
+				sprintf( 'Du skal minimum have %s i din kurv for at bestille en ordre din nuværende kurv total er %s.' , 
+				wc_price($maximum), 
+				wc_price($cart_amt) 
+				), 'error'
+			);
+
+    }else{ 
+      return;
     }
   }
 // 
