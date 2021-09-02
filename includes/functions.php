@@ -1,4 +1,10 @@
 <?php
+/**
+ * check an user is an employee or not
+ *
+ * @param int $id
+ * @return mixed
+ */
 function is_employee($id=null) { 
   if (  ! is_user_logged_in()  || current_user_can('administrator') ) return false;
 
@@ -24,8 +30,29 @@ function is_employee($id=null) {
 
 }
 
-function softx_get_maximum_order_amount_by_employee(){ 
-  /// we will work on it 
+/**
+ * Get total order amount of a exsiting customer 
+ *
+ * @param int $emp_id
+ * @return int
+ */
+function softx_get_total_order_amount_by_employee($emp_id = null){ 
+  $emp_id = ($emp_id)??get_current_user_id();
+  global $wpdb;
+  $sql =$wpdb->prepare("SELECT
+  IFNULL(SUM(wp_wc_order_stats.net_total), 0	) as total
+  FROM
+    wp_wc_order_stats
+    INNER JOIN
+    wp_postmeta
+    ON 
+      wp_wc_order_stats.order_id = wp_postmeta.post_id
+  WHERE
+    wp_postmeta.meta_key = '_customer_user' AND
+    wp_postmeta.meta_value = %d", $emp_id);
+
+    return $wpdb->get_var($sql);
+
 }
 
 add_filter('woocommerce_product_get_price', 'softx_custom_price_for_public_visitor', 10, 2);
@@ -176,6 +203,8 @@ function softx_check_employee_maximum_buying_amount(){
   return;
   }
   $is_emp = is_employee();
+
+  $previous_order = softx_get_total_order_amount_by_employee($is_emp['id']);
   if($is_emp){
     $cart_amt =  WC()->cart->subtotal;
    // $currentuserRole= wp_get_current_user()->roles[0];
@@ -204,6 +233,12 @@ function softx_check_employee_maximum_buying_amount(){
 				), 'error'
 			);
 
+    }elseif($previous_order > 0){
+      remove_action( 'woocommerce_proceed_to_checkout','woocommerce_button_proceed_to_checkout', 20);
+      wc_print_notice('Du har allerede lavet en bestilling, hvis du har fortrudt dit valg bedes du kontakte Holstebro Handelsstandsforening.'
+				 ,'error'
+			);
+
     }else{ 
       return;
     }
@@ -222,9 +257,11 @@ add_action( 'woocommerce_after_checkout_form', 'softx_check_employee_maximum_buy
 
 function softx_get_vendor_shop_info($product_id){ 
   $product = get_post( $product_id);
-  $vendor_shop_name  = dokan()->vendor->get( $product->post_author )->get_shop_name();
-  $vendor_delivery_addr =  dokan_get_seller_address( $product->post_author  );
-
+  $store_info        = dokan_get_store_info( $product->post_author);
+  $vendor_shop_name  = $store_info['store_name'];
+  $vendor_delivery_addr = $store_info['address']['street_1'] ;
+  $vendor_delivery_addr .= !empty(trim($store_info['phone']))?", Telefon: ". $store_info['phone'] : null;
+  
   return [  'name' => $vendor_shop_name, 'adresse' => $vendor_delivery_addr];
 }
 
@@ -314,8 +351,8 @@ add_filter( 'woocommerce_get_item_data', 'plugin_republic_get_item_data', 10, 2 
       $item->add_meta_data( __( 'afhentningsdato', 'softx-dokan' ), $values['afhentningsdato'], true );
     }  
 
-    if( isset( $values['vendor_name'] ) ) {
-      $item->add_meta_data( __( 'vendor_name', 'softx-dokan' ), $values['vendor_name'], true );
+    if( isset( $values['butik'] ) ) {
+      $item->add_meta_data( __( 'butik', 'softx-dokan' ), $values['butik'], true );
     }
     if( isset( $values['afhentnings_steder'] ) ) {
       $item->add_meta_data( __( 'afhentnings_steder', 'softx-dokan' ), $values['afhentnings_steder'], true );
@@ -487,9 +524,3 @@ function softx_show_public_price_content($column, $product_id){
       break;
   }
 }
-
-
-
-
-
-  

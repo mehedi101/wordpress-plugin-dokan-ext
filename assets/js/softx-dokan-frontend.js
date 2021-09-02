@@ -50,6 +50,22 @@
      }
     });
 
+
+    function set_all_the_variation_price(){
+      var product_type = $("#product_type").find("option:selected").val(); // variable
+      var price_category = parseInt( $("#prices").find("option:selected").text());
+      if (product_type == 'variable'){
+      $(".dokan-variable-attributes .wc_input_price").val(price_category);
+        }
+      return;
+     }
+
+     $(".do_variation_action").on("click",function(){
+
+      window.setTimeout(function(){
+        set_all_the_variation_price();
+      },2500)
+     });
     /********************
      * my account page  *
     *********************/
