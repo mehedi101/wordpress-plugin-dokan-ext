@@ -56,6 +56,10 @@ function softx_get_total_order_amount_by_employee($emp_id = null){
 }
 
 add_filter('woocommerce_product_get_price', 'softx_custom_price_for_public_visitor', 10, 2);
+
+/* added css in softx-dokan plugin forntend.css line 104 to hide content. 
+//add_filter('woocommerce_product_variation_get_price', 'softx_custom_price_for_public_visitor', 10, 2);
+
 /**
  * custom_price_WPA111772 
  *
@@ -70,7 +74,7 @@ function softx_custom_price_for_public_visitor($price, $product) {
     $price = "";
     } 
       return $price;
-    }
+}
    
     
 
@@ -325,7 +329,7 @@ function plugin_republic_get_item_data( $item_data, $cart_item_data ) {
 add_filter( 'woocommerce_get_item_data', 'plugin_republic_get_item_data', 10, 2 ); 
 
 /**
- * Add custom meta to order
+ * Add custom meta to order and order item as well.
  */
 
   function plugin_republic_checkout_create_order_line_item( $item, $cart_item_key, $values, $order ) {
@@ -333,36 +337,48 @@ add_filter( 'woocommerce_get_item_data', 'plugin_republic_get_item_data', 10, 2 
     
     if( isset( $values['firma'] ) ) {
       $item->add_meta_data( __( 'firma', 'softx-dokan' ), $values['firma'], true );
+      $order->update_meta_data( __( 'firma', 'softx-dokan' ), $values['firma'], true );
     }
 
     if( isset( $values['kontakt_person'] ) ) {
-      $item->add_meta_data( __( 'kontakt_person', 'softx-dokan' ), $values['kontakt_person'], true );
+      $order->update_meta_data( __( 'kontakt_person', 'softx-dokan' ), $values['kontakt_person'], true);
     }
 
     if( isset( $values['firma_email'] ) ) {
-      $item->add_meta_data( __( 'firma_email', 'softx-dokan' ), $values['firma_email'], true );
+      $order->update_meta_data( __( 'firma_email', 'softx-dokan' ), $values['firma_email'], true );
     }
 
     if( isset( $values['firma_telefon'] ) ) {
-      $item->add_meta_data( __( 'firma_telefon', 'softx-dokan' ), $values['firma_telefon'], true );
+      $order->update_meta_data( __( 'firma_telefon', 'softx-dokan' ), $values['firma_telefon'], true );
     }
    
     if( isset( $values['afhentningsdato'] ) ) {
-      $item->add_meta_data( __( 'afhentningsdato', 'softx-dokan' ), $values['afhentningsdato'], true );
+      $order->update_meta_data( __( 'afhentningsdato', 'softx-dokan' ), $values['afhentningsdato'], true );
     }  
 
     if( isset( $values['butik'] ) ) {
       $item->add_meta_data( __( 'butik', 'softx-dokan' ), $values['butik'], true );
     }
     if( isset( $values['afhentnings_steder'] ) ) {
-      $item->add_meta_data( __( 'afhentnings_steder', 'softx-dokan' ), $values['afhentnings_steder'], true );
+      $order->update_meta_data( __( 'afhentnings_steder', 'softx-dokan' ), $values['afhentnings_steder'], true );
     }
     if( isset( $values['adresse'] ) ) {
-      $item->add_meta_data( __( 'adresse', 'softx-dokan' ), $values['adresse'], true );
+      $order->update_meta_data( __( 'adresse', 'softx-dokan' ), $values['adresse'], true );
     }
   
    }
    add_action( 'woocommerce_checkout_create_order_line_item', 'plugin_republic_checkout_create_order_line_item', 10, 4 );
+
+
+/*
+   add_action('woocommerce_checkout_create_order', 'before_checkout_create_order', 20, 2);
+   function before_checkout_create_order( $order, $data ) {
+
+      var_export( $order);
+     // wp_die();
+       $order->update_meta_data( '_custom_meta_key', 'mehedi' );
+   }
+*/
 
 
 // Removes Order Notes Title - Additional Information & Notes Field

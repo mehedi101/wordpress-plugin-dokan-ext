@@ -101,3 +101,8 @@ body.dokan-dashboard label.dokan-public-price {
   text-transform: capitalize;
 }
 
+/*hide price without logged in in product  page*/
+body.single-product:not(.logged-in) .add-to-cart-container,
+body.single-product:not(.logged-in) .product-price-container {
+  display: none;
+}
